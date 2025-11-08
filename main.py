@@ -8,8 +8,15 @@ load_dotenv()
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
+intents.presences = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
+
+def encontrar_canal_geral(guild):
+    for channel in guild.text_channels:
+        if channel.name.lower() in ['geral', 'general', '💬geral', '💬general']:
+            return channel
+    return guild.system_channel
 
 
 @bot.event
@@ -32,6 +39,30 @@ async def on_member_join(member):
         embed.set_thumbnail(url=member.avatar.url if member.avatar else member.
                             default_avatar.url)
         await channel.send(embed=embed)
+
+
+@bot.event
+async def on_presence_update(before, after):
+    if before.bot:
+        return
+    
+    if before.status == discord.Status.offline and after.status == discord.Status.online:
+        canal = encontrar_canal_geral(after.guild)
+        if canal:
+            mensagem = f"🟢 O Baitola **{after.display_name}** está online! Bora Baitolaaaaa! 🎮"
+            await canal.send(mensagem)
+
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if member.bot:
+        return
+    
+    if before.channel is None and after.channel is not None:
+        canal = encontrar_canal_geral(member.guild)
+        if canal:
+            mensagem = f"🔊 O Baitola **{member.display_name}** entrou em **{after.channel.name}** e está jogando sem você! Bora Baitolaaaaa! 🎮"
+            await canal.send(mensagem)
 
 
 @bot.command(name='ping')
