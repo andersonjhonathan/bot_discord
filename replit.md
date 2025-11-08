@@ -4,6 +4,11 @@
 A Python Discord bot application built with discord.py. The bot provides basic command handling, message responses, and welcome messages for new server members.
 
 ## Recent Changes
+- **2025-11-08**: Added random messages and alternating notifications
+  - Added alternating messages for online notifications (two different variations)
+  - Implemented automatic random messages every 2 hours with humorous gaming references
+  - Random member selection for personalized messages
+  - Created background task system using discord.ext.tasks
 - **2025-11-08**: Added notification features
   - Added online status notifications (sends message when members come online)
   - Added voice channel notifications (alerts when members join voice channels)
@@ -26,8 +31,9 @@ A Python Discord bot application built with discord.py. The bot provides basic c
 - `!ajuda` - Show available commands
 
 ## Features
-- Automatic notifications when members come online
+- Automatic notifications when members come online (with alternating messages)
 - Voice channel join notifications
+- Random humorous messages every 2 hours
 - Welcome messages for new members
 - Basic utility commands
 - Error handling for invalid commands
