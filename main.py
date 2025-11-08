@@ -11,6 +11,7 @@ intents.members = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+
 @bot.event
 async def on_ready():
     print(f'✓ Bot conectado como {bot.user.name} (ID: {bot.user.id})')
@@ -18,62 +19,73 @@ async def on_ready():
     print(f'✓ Conectado a {len(bot.guilds)} servidor(es)')
     print('━' * 50)
 
+
 @bot.event
 async def on_member_join(member):
     channel = member.guild.system_channel
     if channel is not None:
         embed = discord.Embed(
             title="Bem-vindo!",
-            description=f'Olá {member.mention}, seja bem-vindo ao {member.guild.name}!',
-            color=discord.Color.green()
-        )
-        embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
+            description=
+            f'Olá {member.mention}, seja bem-vindo ao {member.guild.name}!',
+            color=discord.Color.green())
+        embed.set_thumbnail(url=member.avatar.url if member.avatar else member.
+                            default_avatar.url)
         await channel.send(embed=embed)
+
 
 @bot.command(name='ping')
 async def ping(ctx):
     latency = round(bot.latency * 1000)
-    embed = discord.Embed(
-        title="🏓 Pong!",
-        description=f'Latência: {latency}ms',
-        color=discord.Color.blue()
-    )
+    embed = discord.Embed(title="🏓 Pong!",
+                          description=f'Latência: {latency}ms',
+                          color=discord.Color.blue())
     await ctx.send(embed=embed)
+
 
 @bot.command(name='info')
 async def info(ctx):
     embed = discord.Embed(
         title="ℹ️ Informações do Bot",
         description="Aplicação Bot - Um bot Discord em Python",
-        color=discord.Color.purple()
-    )
+        color=discord.Color.purple())
     embed.add_field(name="Servidores", value=str(len(bot.guilds)), inline=True)
     embed.add_field(name="Usuários", value=str(len(bot.users)), inline=True)
     embed.add_field(name="Prefixo", value="!", inline=True)
     embed.set_footer(text=f"Solicitado por {ctx.author.name}")
     await ctx.send(embed=embed)
 
+
 @bot.command(name='ajuda')
 async def ajuda(ctx):
-    embed = discord.Embed(
-        title="📚 Comandos Disponíveis",
-        description="Lista de comandos da Aplicação Bot",
-        color=discord.Color.gold()
-    )
-    embed.add_field(name="!ping", value="Verifica a latência do bot", inline=False)
-    embed.add_field(name="!info", value="Mostra informações sobre o bot", inline=False)
-    embed.add_field(name="!ajuda", value="Mostra esta mensagem de ajuda", inline=False)
+    embed = discord.Embed(title="📚 Comandos Disponíveis",
+                          description="Lista de comandos da Aplicação Bot",
+                          color=discord.Color.gold())
+    embed.add_field(name="!ping",
+                    value="Verifica a latência do bot",
+                    inline=False)
+    embed.add_field(name="!info",
+                    value="Mostra informações sobre o bot",
+                    inline=False)
+    embed.add_field(name="!ajuda",
+                    value="Mostra esta mensagem de ajuda",
+                    inline=False)
     embed.set_footer(text="Use ! antes de cada comando")
     await ctx.send(embed=embed)
+
 
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send("❌ Comando não encontrado! Use `!ajuda` para ver os comandos disponíveis.")
+        await ctx.send(
+            "❌ Comando não encontrado! Use `!ajuda` para ver os comandos disponíveis."
+        )
     elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("❌ Argumentos faltando! Verifique o comando e tente novamente.")
+        await ctx.send(
+            "❌ Argumentos faltando! Verifique o comando e tente novamente.")
     else:
         await ctx.send(f"❌ Ocorreu um erro: {str(error)}")
+
 
 def main():
     token = os.getenv('DISCORD_BOT_TOKEN')
@@ -81,13 +93,14 @@ def main():
         print("❌ ERRO: DISCORD_BOT_TOKEN não encontrado!")
         print("Por favor, adicione seu token do Discord Bot nas secrets.")
         return
-    
+
     try:
         bot.run(token)
     except discord.LoginFailure:
         print("❌ ERRO: Token inválido! Verifique seu DISCORD_BOT_TOKEN.")
     except Exception as e:
         print(f"❌ ERRO ao iniciar o bot: {e}")
+
 
 if __name__ == '__main__':
     main()
