@@ -1,6 +1,3 @@
-
-from flask import Flask
-from threading import Thread
 import nextcord as discord
 from nextcord.ext import commands, tasks
 import os
@@ -8,19 +5,6 @@ import random
 from dotenv import load_dotenv
 import json
 from datetime import datetime, timedelta
-
-app = Flask('')
-
-@app.route('/')
-def home():
-    return "✅ Bot ativo e rodando no Replit!"
-
-def run():
-    app.run(host='0.0.0.0', port=8080)
-
-def keep_alive():
-    t = Thread(target=run)
-    t.start()
 
 RANKING_FILE = "ranking.json"
 
@@ -325,5 +309,4 @@ async def on_message(message):
 
 
 if __name__ == '__main__':
-    keep_alive()
     main()
