@@ -1,9 +1,8 @@
-import sys
-sys.modules['audioop'] = None
+
 from flask import Flask
 from threading import Thread
-import discord
-from discord.ext import commands, tasks
+import nextcord as discord
+from nextcord.ext import commands, tasks
 import os
 import random
 from dotenv import load_dotenv
