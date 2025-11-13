@@ -1,12 +1,4 @@
 modules = ["python-3.11"]
-[agent]
-expertMode = true
-
-[nix]
-channel = "stable-25_05"
-
-run = "python main.py"
-entrypoint = "main.py"
 
 [env]
 PORT = "8080"
@@ -14,3 +6,6 @@ PORT = "8080"
 [[ports]]
 localPort = 8080
 externalPort = 80
+
+[run]
+command = "python3 main.py"
