@@ -1,8 +1,27 @@
+from flask import Flask
+from threading import Thread
 import discord
 from discord.ext import commands, tasks
 import os
 import random
 from dotenv import load_dotenv
+import json
+from datetime import datetime, timedelta
+
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "✅ Bot ativo e rodando no Replit!"
+
+def run():
+    app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
+RANKING_FILE = "ranking.json"
 
 load_dotenv()
 
@@ -55,6 +74,7 @@ async def mensagens_aleatorias():
             if membro:
                 frase = random.choice(frases_com_nome)
                 frase = frase.format(nome=membro.display_name)
+                adicionar_ponto(membro.id, "mencionado")
             else:
                 frase = random.choice(frases_sem_nome)
             
@@ -93,18 +113,29 @@ async def on_presence_update(before, after):
     global mensagem_online_alternada
     if before.bot:
         return
+
+    canal = encontrar_canal_geral(after.guild)
     
     if before.status == discord.Status.offline and after.status == discord.Status.online:
-        canal = encontrar_canal_geral(after.guild)
+        
         if canal:
             if mensagem_online_alternada:
                 mensagem = f"🟢 O Baitola **{after.display_name}** está online! Bora Baitolaaaaa! 🎮"
             else:
-                mensagem = f"🪖 O baitola **{after.display_name}** acordou do gulag e tá ONLINE!\nSerá que hoje ele acerta um tiro? 🎯"
-            
+                mensagem = f"🪖 O baitola **{after.display_name}** está online! Bora jogar, miseráaa! 🎯"            
             mensagem_online_alternada = not mensagem_online_alternada
             await canal.send(mensagem)
+            adicionar_ponto(after.id, "online")
 
+    if before.activity and hasattr(before.activity, 'name'):
+        jogo = before.activity.name.lower()
+        if "warzone" in jogo:
+            if canal:
+                await canal.send(f"🎮 O baitola **{after.display_name}** começou a jogar **Warzone**! Bora dropar, soldado!")
+
+        if before.activity and not after.activity:
+            if canal:
+                await canal.send(f"🚪 O baitola **{after.display_name}** saiu do jogo. Fim da missão!🔚")
 
 @bot.event
 async def on_voice_state_update(member, before, after):
@@ -116,16 +147,7 @@ async def on_voice_state_update(member, before, after):
         if canal:
             mensagem = f"🔊 O Baitola **{member.display_name}** entrou em **{after.channel.name}** e está jogando sem você! Bora Baitolaaaaa! 🎮"
             await canal.send(mensagem)
-
-
-@bot.command(name='ping')
-async def ping(ctx):
-    latency = round(bot.latency * 1000)
-    embed = discord.Embed(title="🏓 Pong!",
-                          description=f'Latência: {latency}ms',
-                          color=discord.Color.blue())
-    await ctx.send(embed=embed)
-
+            adicionar_ponto(member.id, "voz")
 
 @bot.command(name='info')
 async def info(ctx):
@@ -186,5 +208,121 @@ def main():
         print(f"❌ ERRO ao iniciar o bot: {e}")
 
 
+def carregar_ranking():
+    if os.path.exists(RANKING_FILE):
+        with open(RANKING_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def salvar_ranking(data):
+    with open(RANKING_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+def adicionar_ponto(user_id, tipo):
+    data = carregar_ranking()
+    if str(user_id) not in data:
+        data[str(user_id)] = {"voz": 0, "online": 0, "mencionado": 0}
+
+    data[str(user_id)][tipo] += 1
+    salvar_ranking(data)
+
+@tasks.loop(hours=24)
+async def resetar_ranking():
+    agora = datetime.now()
+    if agora.weekday() == 6 and agora.hour == 0:
+        data = carregar_ranking()
+        if data:
+            campeao_id = None
+            campeao_pontos = 0
+
+            for user_id, pontos in data.items():
+                total = sum(pontos.values())
+                if total > campeao_pontos:
+                    campeao_pontos = total
+                    campeao_id = user_id
+
+            for guild in bot.guilds:
+                canal = encontrar_canal_geral(guild)
+                if canal:
+                    if campeao_id:
+                        membro = guild.get_member(int(campeao_id))
+                        nome = membro.display_name if membro else "Desconhecido"
+                        await canal.send(
+                            f"👑 **O Baitola Supremo da Semana foi {membro.mention if membro else nome}!**\n"
+                            f"Com um total de **{campeao_pontos} pontos**, sua baitolagem atingiu níveis lendários! 💅🔥"
+                        )
+                    await canal.send("🧹 Ranking semanal resetado! Começou a nova corrida dos baitolas 🔥")
+
+        salvar_ranking({})
+
+@bot.command(name="ranking")
+async def ranking(ctx):
+    data = carregar_ranking()
+    if not data:
+        await ctx.send("😴 Ninguém fez nada ainda essa semana! Vamos jogar, baitolas!")
+        return
+
+    membros = []
+    for user_id, pontos in data.items():
+        membro = ctx.guild.get_member(int(user_id))
+        nome = membro.display_name if membro else f"Desconhecido ({user_id})"
+        total = sum(pontos.values())
+        membros.append((nome, total, pontos))
+
+    membros.sort(key=lambda x: x[1], reverse=True)
+
+    embed = discord.Embed(
+        title="🏅 Top Baitolas da Semana",
+        description="Ranking dos mais ativos do Baitolas Club!",
+        color=discord.Color.orange()
+    )
+
+    for i, (nome, total, pontos) in enumerate(membros[:10], start=1):
+        embed.add_field(
+            name=f"{i}. {nome}",
+            value=f"🎧 Voz: {pontos['voz']} | 🟢 Online: {pontos['online']} | 💬 Mencionado: {pontos['mencionado']} | Total: {total}",
+            inline=False
+        )
+
+    await ctx.send(embed=embed)
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    respostas = {
+        "camper": [
+            "👀 Alguém falou de camper? Aposto que foi o {nome} de novo!",
+            "🚽 {nome} tá camperando desde o drop, certeza!",
+            "📦 Camper detectado! {nome}, sai do mato!"
+        ],
+        "dropa": [
+            "🪂 Boraaaa dropar, baitolaaaa!",
+            "🎯 Drop confirmado, {nome}!",
+            "🪖 {nome}, espero que você não caia longe dessa vez!"
+        ],
+        "ganhamos": [
+            "🏆 Ganhou nada, {nome}. Quero ver o print!",
+            "🔥 Boraaaa! Até que enfim uma vitória decente!",
+            "💪 É isso, {nome}! Agora repete pra provar que não foi sorte!"
+        ],
+        "lag": [
+            "📶 Cuidado, {nome}, o lag é só desculpa pra morrer rápido 😆",
+            "💥 Lag? Ou falta de skill mesmo? 👀"
+        ]
+    }
+
+    msg = message.content.lower()
+    for palavra, frases in respostas.items():
+        if palavra in msg:
+            resposta = random.choice(frases).format(nome=message.author.display_name)
+            await message.channel.send(resposta)
+            break  # só responde uma vez por mensagem
+
+    await bot.process_commands(message)
+
+
 if __name__ == '__main__':
+    keep_alive()
     main()
