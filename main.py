@@ -1,3 +1,5 @@
+import sys
+sys.modules['audioop'] = None
 from flask import Flask
 from threading import Thread
 import discord
