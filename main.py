@@ -131,13 +131,13 @@ async def on_presence_update(before, after):
 
     if before.activity and hasattr(before.activity, 'name'):
         jogo = before.activity.name.lower()
-        if "warzone" in jogo:
+        if "call of duty" in jogo:
             if canal:
                 await canal.send(f"🎮 O baitola **{after.display_name}** começou a jogar **Warzone**! Bora dropar, soldado!")
 
-        if before.activity and not after.activity:
-            if canal:
-                await canal.send(f"🚪 O baitola **{after.display_name}** saiu do jogo. Fim da missão!🔚")
+        # if before.activity and not after.activity:
+        #     if canal:
+        #         await canal.send(f"🚪 O baitola **{after.display_name}** saiu do jogo. Fim da missão!🔚")
 
 @bot.event
 async def on_voice_state_update(member, before, after):
