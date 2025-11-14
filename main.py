@@ -129,8 +129,8 @@ async def on_presence_update(before, after):
             await canal.send(mensagem)
             adicionar_ponto(after.id, "online")
 
-    if before.activity and hasattr(before.activity, 'name'):
-        jogo = before.activity.name.lower()
+    if after.activity and hasattr(after.activity, 'name'):
+        jogo = after.activity.name.lower()
         if "call of duty" in jogo:
             if canal:
                 await canal.send(f"🎮 O baitola **{after.display_name}** começou a jogar **Warzone**! Bora dropar, soldado!")
