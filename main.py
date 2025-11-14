@@ -135,6 +135,14 @@ async def on_presence_update(before, after):
             if canal:
                 await canal.send(f"🎮 O baitola **{after.display_name}** começou a jogar **Warzone**! Bora dropar, soldado!")
 
+        else:
+            if canal:
+                await canal.send(f"🚨 TRAIÇÃO DETECTADA! 🚨\n"
+                    f"❌ O corno **{after.display_name}** está jogando **{after.activity.name}** "
+                    f"ao invés de dropar no Warzone com o esquadrão!\n"
+                    f"🤦‍♂️ Vergonha do clã!"
+                )
+
         # if before.activity and not after.activity:
         #     if canal:
         #         await canal.send(f"🚪 O baitola **{after.display_name}** saiu do jogo. Fim da missão!🔚")
