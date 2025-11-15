@@ -131,6 +131,10 @@ async def on_presence_update(before, after):
 
     if after.activity and hasattr(after.activity, 'name'):
         jogo = after.activity.name.lower()
+
+        if atividade.type == discord.ActivityType.listening and nome == "spotify":
+        return
+        
         if "call of duty" in jogo:
             if canal:
                 await canal.send(f"🎮 O baitola **{after.display_name}** começou a jogar **Warzone**! Bora dropar, soldado!")
