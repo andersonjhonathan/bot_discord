@@ -269,6 +269,18 @@ async def resetar_ranking():
 
         salvar_ranking({})
 
+
+@bot.command(name="clean")
+@commands.has_permissions(manage_messages=True)
+async def clean(ctx):
+    try:
+        await ctx.channel.purge(limit=15)
+        msg = await ctx.send("🧹 Chat limpo! Removi as últimas 15 mensagens.")
+        await asyncio.sleep(3)
+        await msg.delete()
+    except Exception as e:
+        await ctx.send(f"Erro ao limpar mensagens: {e}")
+
 @bot.command(name="ranking")
 async def ranking(ctx):
     data = carregar_ranking()
