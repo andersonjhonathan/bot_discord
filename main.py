@@ -117,35 +117,45 @@ async def on_presence_update(before, after):
         return
 
     canal = encontrar_canal_geral(after.guild)
-    
+
     if before.status == discord.Status.offline and after.status == discord.Status.online:
-        
         if canal:
             if mensagem_online_alternada:
                 mensagem = f"🟢 O Baitola **{after.display_name}** está online! Bora Baitolaaaaa! 🎮"
             else:
-                mensagem = f"🪖 O baitola **{after.display_name}** está online! Bora jogar, miseráaa! 🎯"            
+                mensagem = f"🪖 O baitola **{after.display_name}** está online! Bora jogar, miseráaa! 🎯"
             mensagem_online_alternada = not mensagem_online_alternada
             await canal.send(mensagem)
             adicionar_ponto(after.id, "online")
 
-    if after.activity and hasattr(after.activity, 'name'):
-        jogo = after.activity.name.lower()
+    atividade = after.activity
 
-        if atividade.type == discord.ActivityType.listening and nome == "spotify":
-            return
+    if atividade is None:
+        return
 
-        if "call of duty" in jogo:
-            if canal:
-                await canal.send(f"🎮 O baitola **{after.display_name}** começou a jogar **Warzone**! Bora dropar, soldado!")
+    if isinstance(atividade, discord.Spotify):
+        return
 
-        else:
-            if canal:
-                await canal.send(f"🚨 TRAIÇÃO DETECTADA! 🚨\n"
-                    f"❌ O corno **{after.display_name}** está jogando **{after.activity.name}** "
-                    f"ao invés de dropar no Warzone com o esquadrão!\n"
-                    f"🤦‍♂️ Vergonha do clã!"
-                )
+    if hasattr(atividade, "name") and atividade.name:
+        jogo = atividade.name.lower()
+    else:
+        return
+
+    if "call of duty" in jogo or "warzone" in jogo:
+        if canal:
+            await canal.send(
+                f"🎮 O baitola **{after.display_name}** começou a jogar **Warzone**! Bora dropar, soldado!"
+            )
+        return
+
+    if canal:
+        await canal.send(
+            f"🚨 TRAIÇÃO DETECTADA! 🚨\n"
+            f"❌ O corno **{after.display_name}** está jogando **{atividade.name}** "
+            f"ao invés de dropar no Warzone com o esquadrão!\n"
+            f"🤦‍♂️ Vergonha do clã!"
+        )
+
 
         # if before.activity and not after.activity:
         #     if canal:
